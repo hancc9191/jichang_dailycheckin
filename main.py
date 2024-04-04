@@ -1,14 +1,11 @@
-import requests, json, re, os
+import requests
+import json
+import re
+import os
 
 session = requests.session()
-# 配置用户名（一般是邮箱）
-email = os.environ.get('EMAIL')
-# 配置用户名对应的密码 和上面的email对应上
-passwd = os.environ.get('PASSWD')
-# server酱
-SCKEY = os.environ.get('SCKEY')
-# PUSHPLUS
-Token = os.environ.get('TOKEN')
+
+# Function to send notification
 def push(content):
     if SCKEY != '1':
         url = "https://sctapi.ftqq.com/{}.send?title={}&desp={}".format(SCKEY, 'ikuuu签到', content)
@@ -16,96 +13,49 @@ def push(content):
         print('推送完成')
     elif Token != '1':
         headers = {'Content-Type': 'application/json'}
-        json = {"token": Token, 'title': 'ikuuu签到', 'content': content, "template": "json"}
-        resp = requests.post(f'http://www.pushplus.plus/send', json=json, headers=headers).json()
+        json_data = {"token": Token, 'title': 'ikuuu签到', 'content': content, "template": "json"}
+        resp = requests.post(f'http://www.pushplus.plus/send', json=json_data, headers=headers).json()
         print('push+推送成功' if resp['code'] == 200 else 'push+推送失败')
     else:
         print('未使用消息推送推送！')
 
-# 会不定时更新域名，记得Sync fork
-
+# Login URLs
 login_url = 'https://ikuuu.pw/auth/login'
 check_url = 'https://ikuuu.pw/user/checkin'
 info_url = 'https://ikuuu.pw/user/profile'
 
+# User credentials list
+users = [
+    {'email': os.environ.get('EMAIL'), 'passwd': os.environ.get('PASSWD'), 'SCKEY': os.environ.get('SCKEY'), 'Token': os.environ.get('TOKEN')},
+    {'email': os.environ.get('EMAIL1'), 'passwd': os.environ.get('PASSWD1'), 'SCKEY': os.environ.get('SCKEY2'), 'Token': os.environ.get('TOKEN2')}
+]
+
+# Headers
 header = {
-        'origin': 'https://ikuuu.me',
-        'user-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36'
+    'origin': 'https://ikuuu.me',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36'
 }
-data = {
-        'email': email,
-        'passwd': passwd
-}
-try:
-    print('进行登录...')
-    response = json.loads(session.post(url=login_url,headers=header,data=data).text)
-    print(response['msg'])
-    # 获取账号名称
-    info_html = session.get(url=info_url,headers=header).text
-#     info = "".join(re.findall('<span class="user-name text-bold-600">(.*?)</span>', info_html, re.S))
-#     print(info)
-    # 进行签到
-    result = json.loads(session.post(url=check_url,headers=header).text)
-    print(result['msg'])
-    content = result['msg']
-    # 进行推送
-    push(content)
-except:
-    content = '签到失败'
-    print(content)
-    push(content)
 
-session = requests.session()
-# 配置用户名（一般是邮箱）
-email1 = os.environ.get('EMAIL1')
-# 配置用户名对应的密码 和上面的email对应上
-passwd1 = os.environ.get('PASSWD1')
-# server酱
-SCKEY = os.environ.get('SCKEY')
-# PUSHPLUS
-Token = os.environ.get('TOKEN')
-def push(content):
-    if SCKEY != '1':
-        url = "https://sctapi.ftqq.com/{}.send?title={}&desp={}".format(SCKEY, 'ikuuu签到', content)
-        requests.post(url)
-        print('推送完成')
-    elif Token != '1':
-        headers = {'Content-Type': 'application/json'}
-        json = {"token": Token, 'title': 'ikuuu签到', 'content': content, "template": "json"}
-        resp = requests.post(f'http://www.pushplus.plus/send', json=json, headers=headers).json()
-        print('push+推送成功' if resp['code'] == 200 else 'push+推送失败')
-    else:
-        print('未使用消息推送推送！')
+# Loop through each user
+for user in users:
+    try:
+        print(f"Logging in for {user['email']}...")
+        # Perform login
+        data = {'email': user['email'], 'passwd': user['passwd']}
+        response = json.loads(session.post(url=login_url, headers=header, data=data).text)
+        print(response['msg'])
+        
+        # Fetch user profile information
+        info_html = session.get(url=info_url, headers=header).text
 
-# 会不定时更新域名，记得Sync fork
+        # Perform check-in
+        result = json.loads(session.post(url=check_url, headers=header).text)
+        print(result['msg'])
+        content = result['msg']
 
-login_url = 'https://ikuuu.pw/auth/login'
-check_url = 'https://ikuuu.pw/user/checkin'
-info_url = 'https://ikuuu.pw/user/profile'
-
-header = {
-        'origin': 'https://ikuuu.me',
-        'user-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36'
-}
-data = {
-        'email1': email1,
-        'passwd1': passwd1
-}
-try:
-    print('进行登录...')
-    response = json.loads(session.post(url=login_url,headers=header,data=data).text)
-    print(response['msg'])
-    # 获取账号名称
-    info_html = session.get(url=info_url,headers=header).text
-#     info = "".join(re.findall('<span class="user-name text-bold-600">(.*?)</span>', info_html, re.S))
-#     print(info)
-    # 进行签到
-    result = json.loads(session.post(url=check_url,headers=header).text)
-    print(result['msg'])
-    content = result['msg']
-    # 进行推送
-    push(content)
-except:
-    content = '签到失败'
-    print(content)
-    push(content)
+        # Send notification
+        push(content)
+    except Exception as e:
+        content = f"签到失败: {str(e)}"
+        print(content)
+        push(content)
