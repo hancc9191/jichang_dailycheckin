@@ -26,8 +26,8 @@ info_url = 'https://ikuuu.pw/user/profile'
 
 # User credentials list
 users = [
-    {'email': os.environ.get('EMAIL'), 'passwd': os.environ.get('PASSWD'), 'SCKEY': os.environ.get('SCKEY'), 'Token': os.environ.get('TOKEN')},
-    {'email': os.environ.get('EMAIL1'), 'passwd': os.environ.get('PASSWD1'), 'SCKEY': os.environ.get('SCKEY2'), 'Token': os.environ.get('TOKEN2')}
+    {'email': os.environ.get('EMAIL'), 'passwd': os.environ.get('PASSWD'), },
+    {'email': os.environ.get('EMAIL1'), 'passwd': os.environ.get('PASSWD1'), }
 ]
 
 # Headers
