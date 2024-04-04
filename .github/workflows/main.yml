@@ -11,14 +11,12 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # if: github.ref == 'refs/heads/master'
 
     steps:
       - name: Checkout master
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-          # ref: master
 
       - name: Set up python
         uses: actions/setup-python@v2
@@ -33,13 +31,17 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      - name: Run sign
+
+      - name: Run sign for Account 1
         env:
           SCKEY: ${{ secrets.SCKEY }}
           EMAIL: ${{ secrets.EMAIL }}
           PASSWD: ${{ secrets.PASSWD }}
-          SCKEY1: ${{ secrets.SCKEY1 }}
-          EMAIL1: ${{ secrets.EMAIL1 }}
-          PASSWD1: ${{ secrets.PASSWD1 }}
-        run: |
-          python3 ./main.py
+        run: python3 ./main.py
+
+      - name: Run sign for Account 2
+        env:
+          SCKEY: ${{ secrets.SCKEY2 }}
+          EMAIL: ${{ secrets.EMAIL2 }}
+          PASSWD: ${{ secrets.PASSWD2 }}
+        run: python3 ./main.py
