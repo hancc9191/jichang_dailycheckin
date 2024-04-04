@@ -6,18 +6,7 @@ import os
 session = requests.session()
 
 # Function to send notification
-def push(content):
-    if SCKEY != '1':
-        url = "https://sctapi.ftqq.com/{}.send?title={}&desp={}".format(SCKEY, 'ikuuu签到', content)
-        requests.post(url)
-        print('推送完成')
-    elif Token != '1':
-        headers = {'Content-Type': 'application/json'}
-        json_data = {"token": Token, 'title': 'ikuuu签到', 'content': content, "template": "json"}
-        resp = requests.post(f'http://www.pushplus.plus/send', json=json_data, headers=headers).json()
-        print('push+推送成功' if resp['code'] == 200 else 'push+推送失败')
-    else:
-        print('未使用消息推送推送！')
+
 
 # Login URLs
 login_url = 'https://ikuuu.pw/auth/login'
