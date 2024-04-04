@@ -42,9 +42,4 @@ for user in users:
         print(result['msg'])
         content = result['msg']
 
-        # Send notification
-        push(content)
-    except Exception as e:
-        content = f"签到失败: {str(e)}"
-        print(content)
-        push(content)
+
