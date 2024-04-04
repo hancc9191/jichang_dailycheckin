@@ -41,5 +41,3 @@ for user in users:
         result = json.loads(session.post(url=check_url, headers=header).text)
         print(result['msg'])
         content = result['msg']
-
-
