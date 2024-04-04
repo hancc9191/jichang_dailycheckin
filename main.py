@@ -57,9 +57,9 @@ except:
 
 session = requests.session()
 # 配置用户名（一般是邮箱）
-email = os.environ.get('EMAIL1')
+email1 = os.environ.get('EMAIL1')
 # 配置用户名对应的密码 和上面的email对应上
-passwd = os.environ.get('PASSWD1')
+passwd1 = os.environ.get('PASSWD1')
 # server酱
 SCKEY = os.environ.get('SCKEY')
 # PUSHPLUS
@@ -88,8 +88,8 @@ header = {
         'user-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36'
 }
 data = {
-        'email': email1,
-        'passwd': passwd1
+        'email1': email1,
+        'passwd1': passwd1
 }
 try:
     print('进行登录...')
