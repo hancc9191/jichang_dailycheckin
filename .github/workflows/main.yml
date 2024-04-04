@@ -38,8 +38,8 @@ jobs:
           SCKEY: ${{ secrets.SCKEY }}
           EMAIL: ${{ secrets.EMAIL }}
           PASSWD: ${{ secrets.PASSWD }}
-          SCKEY1: ${{ secrets.SCKEY }}
-          EMAIL1: ${{ secrets.EMAIL }}
-          PASSWD1: ${{ secrets.PASSWD }}
+          SCKEY1: ${{ secrets.SCKEY1 }}
+          EMAIL1: ${{ secrets.EMAIL1 }}
+          PASSWD1: ${{ secrets.PASSWD1 }}
         run: |
           python3 ./main.py
