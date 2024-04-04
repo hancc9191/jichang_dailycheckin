@@ -41,7 +41,7 @@ jobs:
 
       - name: Run sign for Account 2
         env:
-          SCKEY: ${{ secrets.SCKEY2 }}
-          EMAIL: ${{ secrets.EMAIL2 }}
-          PASSWD: ${{ secrets.PASSWD2 }}
+          SCKEY: ${{ secrets.SCKEY1 }}
+          EMAIL: ${{ secrets.EMAIL1 }}
+          PASSWD: ${{ secrets.PASSWD1 }}
         run: python3 ./main.py
