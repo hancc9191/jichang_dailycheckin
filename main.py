@@ -1,14 +1,16 @@
-import requests, json, re, os
+import requests
+import json
+import re
+import os
 
 session = requests.session()
-# 配置用户名（一般是邮箱）
+
+# Retrieve environment variables
 email = os.environ.get('EMAIL')
-# 配置用户名对应的密码 和上面的email对应上
 passwd = os.environ.get('PASSWD')
-# server酱
 SCKEY = os.environ.get('SCKEY')
-# PUSHPLUS
 Token = os.environ.get('TOKEN')
+
 def push(content):
     if SCKEY != '1':
         url = "https://sctapi.ftqq.com/{}.send?title={}&desp={}".format(SCKEY, 'ikuuu签到', content)
@@ -22,35 +24,45 @@ def push(content):
     else:
         print('未使用消息推送推送！')
 
-# 会不定时更新域名，记得Sync fork
-
 login_url = 'https://ikuuu.pw/auth/login'
 check_url = 'https://ikuuu.pw/user/checkin'
 info_url = 'https://ikuuu.pw/user/profile'
 
 header = {
-        'origin': 'https://ikuuu.me',
-        'user-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36'
+    'origin': 'https://ikuuu.me',
+    'user-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36'
 }
+
 data = {
-        'email': email,
-        'passwd': passwd
+    'email': email,
+    'passwd': passwd
 }
+
+# Initialize an empty list to store messages
+results = []
+
 try:
     print('进行登录...')
-    response = json.loads(session.post(url=login_url,headers=header,data=data).text)
+    response = json.loads(session.post(url=login_url, headers=header, data=data).text)
     print(response['msg'])
-    # 获取账号名称
-    info_html = session.get(url=info_url,headers=header).text
-#     info = "".join(re.findall('<span class="user-name text-bold-600">(.*?)</span>', info_html, re.S))
-#     print(info)
-    # 进行签到
-    result = json.loads(session.post(url=check_url,headers=header).text)
+    
+    # Get user info
+    info_html = session.get(url=info_url, headers=header).text
+    # info = "".join(re.findall('<span class="user-name text-bold-600">(.*?)</span>', info_html, re.S))
+    # print(info)
+    
+    # Check in
+    result = json.loads(session.post(url=check_url, headers=header).text)
     print(result['msg'])
-    content = result['msg']
-    # 进行推送
-    push(content)
-except:
-    content = '签到失败'
-    print(content)
-    push(content)
+    results.append(result['msg'])  # Append the check-in result message
+    
+except Exception as e:
+    error_msg = '签到失败: ' + str(e)
+    print(error_msg)
+    results.append(error_msg)  # Append the error message
+
+# Combine all messages into a single string
+content = '\n'.join(results)
+
+# Send a unified push notification
+push(content)
