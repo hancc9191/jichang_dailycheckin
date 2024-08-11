@@ -7,7 +7,7 @@
   <br/>如若不想使用推送，请假下面的SCKEY和TOKEN参数全部赋值为<b>1</b>
   
 
-# 部署过程
+# 部署过程1
  
 1. 右上角Fork此仓库
 2. 然后到`Settings`→`Secrets and variables`→`Actions` 新建以下参数：
