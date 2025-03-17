@@ -9,7 +9,7 @@
 
 # 部署过程1
  
-1. 右上角Fork此仓库
+1. 右上角Fork此仓
 2. 然后到`Settings`→`Secrets and variables`→`Actions` 新建以下参数：
 
 | 参数   |  内容  | 
