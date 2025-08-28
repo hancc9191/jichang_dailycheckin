@@ -1,68 +1,62 @@
 import requests
 import json
-import re
 import os
 
 session = requests.session()
 
 # Retrieve environment variables
-email = os.environ.get('EMAIL')
-passwd = os.environ.get('PASSWD')
 SCKEY = os.environ.get('SCKEY')
 Token = os.environ.get('TOKEN')
 
+# 多账号信息（邮箱和密码以 | 分隔）
+emails = os.environ.get('EMAIL').split('|')
+passwds = os.environ.get('PASSWD').split('|')
+
 def push(content):
-    if SCKEY != '1':
-        url = "https://sctapi.ftqq.com/{}.send?title={}&desp={}".format(SCKEY, 'ikuuu签到', content)
+    if SCKEY and SCKEY != '1':
+        url = f"https://sctapi.ftqq.com/{SCKEY}.send?title=ikuuu签到&desp={content}"
         requests.post(url)
-        print('推送完成')
-    elif Token != '1':
+        print('Server酱推送完成')
+    elif Token and Token != '1':
         headers = {'Content-Type': 'application/json'}
-        json = {"token": Token, 'title': 'ikuuu签到', 'content': content, "template": "json"}
-        resp = requests.post(f'http://www.pushplus.plus/send', json=json, headers=headers).json()
+        data = {"token": Token, 'title': 'ikuuu签到', 'content': content, "template": "json"}
+        resp = requests.post('http://www.pushplus.plus/send', json=data, headers=headers).json()
         print('push+推送成功' if resp['code'] == 200 else 'push+推送失败')
     else:
-        print('未使用消息推送推送！')
+        print('未使用消息推送！')
 
-login_url = 'https://ikuuu.one/auth/login'
-check_url = 'https://ikuuu.one/user/checkin'
-info_url = 'https://ikuuu.one/user/profile'
+login_url = 'https://ikuuu.de/auth/login'
+check_url = 'https://ikuuu.de/user/checkin'
+info_url = 'https://ikuuu.de/user/profile'
 
 header = {
-    'origin': 'https://ikuuu.one',
+    'origin': 'https://ikuuu.de',
     'user-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36'
 }
 
-data = {
-    'email': email,
-    'passwd': passwd
-}
-
-# Initialize an empty list to store messages
+# 初始化结果
 results = []
 
-try:
-    print('进行登录...')
-    response = json.loads(session.post(url=login_url, headers=header, data=data).text)
-    print(response['msg'])
-    
-    # Get user info
-    info_html = session.get(url=info_url, headers=header).text
-    # info = "".join(re.findall('<span class="user-name text-bold-600">(.*?)</span>', info_html, re.S))
-    # print(info)
-    
-    # Check in
-    result = json.loads(session.post(url=check_url, headers=header).text)
-    print(result['msg'])
-    results.append(result['msg'])  # Append the check-in result message
-    
-except Exception as e:
-    error_msg = '签到失败: ' + str(e)
-    print(error_msg)
-    results.append(error_msg)  # Append the error message
+# 多账号循环
+for i, (email, passwd) in enumerate(zip(emails, passwds), start=1):
+    try:
+        print(f'账号{i} - {email} 开始登录...')
+        login_data = {'email': email, 'passwd': passwd}
+        response = session.post(url=login_url, headers=header, data=login_data).json()
+        msg = response.get('msg', '登录失败')
+        print(f'账号{i}登录结果: {msg}')
 
-# Combine all messages into a single string
+        # 签到
+        result = session.post(url=check_url, headers=header).json()
+        check_msg = result.get('msg', '签到失败')
+        print(f'账号{i}签到结果: {check_msg}')
+
+        results.append(f'账号{i}（{email}）: {check_msg}')
+    except Exception as e:
+        error_msg = f'账号{i}（{email}）签到失败: {e}'
+        print(error_msg)
+        results.append(error_msg)
+
+# 所有账号签到完成后统一推送
 content = '\n'.join(results)
-
-# Send a unified push notification
 push(content)
