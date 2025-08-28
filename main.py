@@ -1,62 +1,60 @@
 import requests
-import json
 import os
 
-# Retrieve environment variables
+# 环境变量
 SCKEY = os.environ.get('SCKEY')
 Token = os.environ.get('TOKEN')
 
-# 多账号（用 | 分隔）
+# 多账号（EMAIL 与 PASSWD 用 | 分隔）
 emails = os.environ.get('EMAIL').split('|')
 passwds = os.environ.get('PASSWD').split('|')
 
 def push(content):
     """统一推送"""
     if SCKEY and SCKEY != '1':
-        url = f"https://sctapi.ftqq.com/{SCKEY}.send?title=ikuuu签到&desp={content}"
-        requests.post(url)
+        url = f"https://sctapi.ftqq.com/{SCKEY}.send"
+        data = {"title": "ikuuu签到", "desp": content}
+        requests.post(url, data=data)
         print('✅ Server酱推送完成')
     elif Token and Token != '1':
         headers = {'Content-Type': 'application/json'}
         data = {"token": Token, 'title': 'ikuuu签到', 'content': content, "template": "json"}
         resp = requests.post('http://www.pushplus.plus/send', json=data, headers=headers).json()
-        print('✅ push+推送成功' if resp['code'] == 200 else '❌ push+推送失败')
+        print('✅ push+推送成功' if resp.get('code') == 200 else '❌ push+推送失败')
     else:
         print('⚠️ 未使用消息推送！')
 
-login_url = 'https://ikuuu.de/auth/login'
-check_url = 'https://ikuuu.de/user/checkin'
-info_url = 'https://ikuuu.de/user/profile'
+# ikuuu 新域名
+base_url = 'https://ikuuu.de'
+login_url = f'{base_url}/auth/login'
+check_url = f'{base_url}/user/checkin'
 
 header = {
-    'origin': 'https://ikuuu.de',
+    'origin': base_url,
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36'
 }
 
-# 存储所有账号签到结果
+# 存储所有结果
 results = []
 
-# 多账号循环
 for i, (email, passwd) in enumerate(zip(emails, passwds), start=1):
-    session = requests.session()   # ⚠️ 每个账号单独一个 session，避免串号
+    session = requests.Session()  # 每个账号独立 session
     try:
-        print(f'🔐 账号{i} - {email} 开始登录...')
+        # 登录
         login_data = {'email': email, 'passwd': passwd}
-        response = session.post(url=login_url, headers=header, data=login_data).json()
-        msg = response.get('msg', '登录失败')
-        print(f'账号{i}登录结果: {msg}')
+        resp = session.post(login_url, headers=header, data=login_data).json()
+        login_msg = resp.get('msg', '登录失败')
+        print(f'账号{i}登录: {login_msg}')
 
         # 签到
-        result = session.post(url=check_url, headers=header).json()
-        check_msg = result.get('msg', '签到失败')
-        print(f'账号{i}签到结果: {check_msg}')
+        resp = session.post(check_url, headers=header).json()
+        check_msg = resp.get('msg', '签到失败')
+        print(f'账号{i}签到: {check_msg}')
 
         results.append(f'账号{i}（{email}）: {check_msg}')
     except Exception as e:
-        error_msg = f'账号{i}（{email}）签到失败: {e}'
-        print(error_msg)
-        results.append(error_msg)
+        results.append(f'账号{i}（{email}）: 出错 - {e}')
 
-# ⚠️ 循环结束后再统一推送一次
-content = '\n'.join(results)
-push(content)
+# 🚀 循环全部完成后统一推送一次
+final_content = '\n'.join(results)
+push(final_content)
