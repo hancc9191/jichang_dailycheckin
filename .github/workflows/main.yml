@@ -2,21 +2,16 @@ name: "Airport Checkin"
 
 on:
   schedule:
-    - cron: "0 22 * * *"  # scheduled at 06:00 (UTC+8) everyday
+    - cron: "0 22 * * *"  # 每天 UTC+22 运行 (北京时间 06:00)
   workflow_dispatch:
 
-env:
-  RUN_ENV: 'prod'
-
 jobs:
-  build:
+  checkin:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout master
         uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
 
       - name: Set up python
         uses: actions/setup-python@v2
@@ -32,16 +27,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run sign for Account 1
+      - name: Run checkin (multi-account)
         env:
           SCKEY: ${{ secrets.SCKEY }}
-          EMAIL: ${{ secrets.EMAIL }}
-          PASSWD: ${{ secrets.PASSWD }}
-        run: python3 ./main.py
-
-      - name: Run sign for Account 2
-        env:
-          SCKEY: ${{ secrets.SCKEY }}
-          EMAIL: ${{ secrets.EMAIL1 }}
-          PASSWD: ${{ secrets.PASSWD1 }}
+          TOKEN: ${{ secrets.TOKEN }}
+          EMAIL: ${{ secrets.EMAIL }}|${{ secrets.EMAIL1 }}
+          PASSWD: ${{ secrets.PASSWD }}|${{ secrets.PASSWD1 }}
         run: python3 ./main.py
