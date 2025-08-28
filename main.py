@@ -2,28 +2,27 @@ import requests
 import json
 import os
 
-session = requests.session()
-
 # Retrieve environment variables
 SCKEY = os.environ.get('SCKEY')
 Token = os.environ.get('TOKEN')
 
-# 多账号信息（邮箱和密码以 | 分隔）
+# 多账号（用 | 分隔）
 emails = os.environ.get('EMAIL').split('|')
 passwds = os.environ.get('PASSWD').split('|')
 
 def push(content):
+    """统一推送"""
     if SCKEY and SCKEY != '1':
         url = f"https://sctapi.ftqq.com/{SCKEY}.send?title=ikuuu签到&desp={content}"
         requests.post(url)
-        print('Server酱推送完成')
+        print('✅ Server酱推送完成')
     elif Token and Token != '1':
         headers = {'Content-Type': 'application/json'}
         data = {"token": Token, 'title': 'ikuuu签到', 'content': content, "template": "json"}
         resp = requests.post('http://www.pushplus.plus/send', json=data, headers=headers).json()
-        print('push+推送成功' if resp['code'] == 200 else 'push+推送失败')
+        print('✅ push+推送成功' if resp['code'] == 200 else '❌ push+推送失败')
     else:
-        print('未使用消息推送！')
+        print('⚠️ 未使用消息推送！')
 
 login_url = 'https://ikuuu.de/auth/login'
 check_url = 'https://ikuuu.de/user/checkin'
@@ -31,16 +30,17 @@ info_url = 'https://ikuuu.de/user/profile'
 
 header = {
     'origin': 'https://ikuuu.de',
-    'user-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36'
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36'
 }
 
-# 初始化结果
+# 存储所有账号签到结果
 results = []
 
 # 多账号循环
 for i, (email, passwd) in enumerate(zip(emails, passwds), start=1):
+    session = requests.session()   # ⚠️ 每个账号单独一个 session，避免串号
     try:
-        print(f'账号{i} - {email} 开始登录...')
+        print(f'🔐 账号{i} - {email} 开始登录...')
         login_data = {'email': email, 'passwd': passwd}
         response = session.post(url=login_url, headers=header, data=login_data).json()
         msg = response.get('msg', '登录失败')
@@ -57,6 +57,6 @@ for i, (email, passwd) in enumerate(zip(emails, passwds), start=1):
         print(error_msg)
         results.append(error_msg)
 
-# 所有账号签到完成后统一推送
+# ⚠️ 循环结束后再统一推送一次
 content = '\n'.join(results)
 push(content)
