@@ -25,6 +25,7 @@ def push(content):
 BASE_URL = 'https://ikuuu.de'
 LOGIN_URL = f'{BASE_URL}/auth/login'
 CHECKIN_URL = f'{BASE_URL}/user/checkin'
+PROFILE_URL = f'{BASE_URL}/user/profile'
 USER_URL = f'{BASE_URL}/user'
 
 HEADERS = {
@@ -35,6 +36,15 @@ HEADERS = {
 }
 
 results = []
+
+def format_traffic(bytes_value):
+    """将字节数格式化成 MB / GB"""
+    if bytes_value < 1024**2:
+        return f"{bytes_value} B"
+    elif bytes_value < 1024**3:
+        return f"{bytes_value/1024/1024:.2f} MB"
+    else:
+        return f"{bytes_value/1024/1024/1024:.2f} GB"
 
 for i, (email, passwd) in enumerate(zip(emails, passwds), start=1):
     session = requests.Session()
@@ -50,16 +60,26 @@ for i, (email, passwd) in enumerate(zip(emails, passwds), start=1):
         check_msg = resp.get('msg', '签到失败')
         print(f'账号{i}签到: {check_msg}')
 
-        # 获取用户信息（调试打印 HTML）
-        html = session.get(USER_URL, headers=HEADERS, timeout=10).text
-        print(f"账号{i} HTML 预览:\n{html[:500]}\n--- 截止 ---")
+        # 先试 /user/profile JSON API
+        transfer, expire = "未知", "未知"
+        try:
+            profile = session.get(PROFILE_URL, headers=HEADERS, timeout=10).json()
+            transfer_enable = profile.get('transfer_enable')
+            u = profile.get('u')
+            d = profile.get('d')
+            expire = profile.get('class_expire', '未知')
 
-        # 尝试匹配流量和到期时间
-        transfer_match = re.search(r'(?:剩余流量|可用流量).*?(\d+\.?\d*\s*(?:GB|MB))', html, re.S)
-        expire_match = re.search(r'(?:到期时间|过期时间).*?(\d{4}-\d{2}-\d{2}.*?)<', html, re.S)
-
-        transfer = transfer_match.group(1).strip() if transfer_match else "未知"
-        expire = expire_match.group(1).strip() if expire_match else "未知"
+            if transfer_enable:
+                used = (u or 0) + (d or 0)
+                left = transfer_enable - used
+                transfer = format_traffic(left)
+        except Exception:
+            # 如果 JSON 失败，再尝试 HTML
+            html = session.get(USER_URL, headers=HEADERS, timeout=10).text
+            transfer_match = re.search(r'(\d+\.?\d*\s*(?:GB|MB))', html)
+            expire_match = re.search(r'(\d{4}-\d{2}-\d{2})', html)
+            transfer = transfer_match.group(1) if transfer_match else "未知"
+            expire = expire_match.group(1) if expire_match else "未知"
 
         results.append(
             f"账号{i}（{email}）\n"
