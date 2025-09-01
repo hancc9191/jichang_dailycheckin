@@ -50,12 +50,13 @@ for i, (email, passwd) in enumerate(zip(emails, passwds), start=1):
         check_msg = resp.get('msg', '签到失败')
         print(f'账号{i}签到: {check_msg}')
 
-        # 获取用户信息（解析 HTML）
+        # 获取用户信息（调试打印 HTML）
         html = session.get(USER_URL, headers=HEADERS, timeout=10).text
+        print(f"账号{i} HTML 预览:\n{html[:500]}\n--- 截止 ---")
 
-        # 匹配剩余流量、总流量、到期时间
-        transfer_match = re.search(r'剩余流量：</span>\s*<span.*?>(.*?)</span>', html)
-        expire_match = re.search(r'到期时间：</span>\s*<span.*?>(.*?)</span>', html)
+        # 尝试匹配流量和到期时间
+        transfer_match = re.search(r'(?:剩余流量|可用流量).*?(\d+\.?\d*\s*(?:GB|MB))', html, re.S)
+        expire_match = re.search(r'(?:到期时间|过期时间).*?(\d{4}-\d{2}-\d{2}.*?)<', html, re.S)
 
         transfer = transfer_match.group(1).strip() if transfer_match else "未知"
         expire = expire_match.group(1).strip() if expire_match else "未知"
