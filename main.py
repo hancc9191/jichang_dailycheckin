@@ -18,19 +18,28 @@ passwds = os.environ.get('PASSWD', '').split('|')
 # 推送函数
 # -------------------------------
 def push(content):
-    """统一推送"""
+    title = 'ikuuu签到'
+    # 优先 Server酱（新接口）
     if SCKEY and SCKEY != '1':
-        url = f"https://sctapi.ftqq.com/{SCKEY}.send"
-        data = {"title": "ikuuu签到", "desp": content}
-        requests.post(url, data=data)
-        print('✅ Server酱推送完成')
+        try:
+            url = f"https://sctapi.ftqq.com/{SCKEY}.send"
+            data = {"title": title, "desp": content}
+            requests.post(url, data=data, timeout=10)
+            print('推送完成（Server酱）')
+        except Exception as e:
+            print(f'Server酱推送失败：{e}')
+    # 其次 Push+
     elif Token and Token != '1':
-        headers = {'Content-Type': 'application/json'}
-        data = {"token": Token, 'title': 'ikuuu签到', 'content': content, "template": "json"}
-        resp = requests.post('http://www.pushplus.plus/send', json=data, headers=headers).json()
-        print('✅ push+推送成功' if resp.get('code') == 200 else '❌ push+推送失败')
+        try:
+            url = "https://www.pushplus.plus/send"  # 修正为 https
+            headers = {'Content-Type': 'application/json'}
+            payload = {"token": Token, "title": title, "content": content, "template": "json"}
+            resp = requests.post(url, json=payload, headers=headers, timeout=10).json()
+            print('push+推送成功' if resp.get('code') == 200 else f'push+推送失败：{resp}')
+        except Exception as e:
+            print(f'push+推送异常：{e}')
     else:
-        print('⚠️ 未使用消息推送！')
+        print('未使用消息推送！')
 
 # -------------------------------
 # ikuuu 域名和接口
